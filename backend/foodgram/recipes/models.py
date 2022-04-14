@@ -95,6 +95,12 @@ class Amount(models.Model):
     class Meta:
         verbose_name = 'Количество ингридиента'
         verbose_name_plural = 'Количество ингридиентов'
+        constraints = [
+            models.UniqueConstraint(
+                fields=('recipe', 'ingredient'),
+                name='unique_ingredient'
+            )
+        ]
 
 
 class Tag(models.Model):
