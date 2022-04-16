@@ -72,6 +72,7 @@ class Ingredient(models.Model):
     class Meta:
         verbose_name = 'Ингридиент'
         verbose_name_plural = 'Ингридиенты'
+        ordering = ['name']
 
     def __str__(self):
         return f'{self.name}, {self.measurement_unit}'
@@ -95,6 +96,7 @@ class Amount(models.Model):
     class Meta:
         verbose_name = 'Количество ингридиента'
         verbose_name_plural = 'Количество ингридиентов'
+        ordering = ['recipe']
         constraints = [
             models.UniqueConstraint(
                 fields=('recipe', 'ingredient'),
@@ -122,6 +124,7 @@ class Tag(models.Model):
     class Meta:
         verbose_name = 'Тэг'
         verbose_name_plural = 'Тэги'
+        ordering = ['name']
 
     def __str__(self):
         return self.name
