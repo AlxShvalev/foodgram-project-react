@@ -1,11 +1,13 @@
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
-from rest_framework import response, status, views, viewsets
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import response, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.serializers import ValidationError
 
-
+from .permissions import IsAuthorOrReadOnly
 from recipes.models import Ingredient, Recipe, Tag
 from recipes.mixins import ListRetrieveModelViewSet
 from recipes.serializers import (
@@ -28,6 +30,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     http_method_names = ('get', 'post', 'patch', 'delete')
     permission_classes = (AllowAny,)
+    pagination_class = PageNumberPagination
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ('author', 'tags',)
+
+    def get_permissions(self):
+        if self.request.method in ('GET', 'PATCH', 'DELETE'):
+            return (IsAuthorOrReadOnly(),)
+        return (IsAuthenticated(),)
+
 
     def get_serializer_class(self):
         if self.request.method in ('GET',):
