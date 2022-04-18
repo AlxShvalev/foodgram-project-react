@@ -5,6 +5,7 @@ from users.serializers import UserSerializer
 
 
 class Base64Field(serializers.ImageField):
+    """Класс для преобразования строки base64 в изображение."""
 
     def to_internal_value(self, data):
         from django.core.files.base import ContentFile
@@ -37,6 +38,7 @@ class Base64Field(serializers.ImageField):
 
 
 class TagSerializer(serializers.ModelSerializer):
+    """Сериализатор модели Tag"""
 
     class Meta:
         model = Tag
@@ -44,6 +46,7 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class IngredientSerializer(serializers.ModelSerializer):
+    """Сериализатор модели Ingredient"""
 
     class Meta:
         model = Ingredient
@@ -51,6 +54,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class AmountReadSerializer(serializers.ModelSerializer):
+    """Сериализатор для чтения модели Amount"""
     id = serializers.ReadOnlyField(source='ingredient.id')
     name = serializers.ReadOnlyField(source='ingredient.name')
     measurement_unit = serializers.ReadOnlyField(
@@ -63,6 +67,7 @@ class AmountReadSerializer(serializers.ModelSerializer):
 
 
 class AmountWriteSerializer(serializers.Serializer):
+    """Сериализатор для записи модели Amount."""
     id = serializers.IntegerField()
     amount = serializers.IntegerField()
 
@@ -73,6 +78,7 @@ class AmountWriteSerializer(serializers.Serializer):
 
 
 class RecipeReadSerializer(serializers.ModelSerializer):
+    """Сериализатор для чтения рецептов"""
     ingredients = AmountReadSerializer(many=True, source='amount')
     author = UserSerializer(read_only=True)
     tags = TagSerializer(read_only=True, many=True)

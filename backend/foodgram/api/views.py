@@ -3,11 +3,12 @@ from django.contrib.auth import get_user_model
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, response, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.serializers import ValidationError
 
+from .paginators import NumPageLimitPagination
 from .permissions import IsAuthorOrReadOnly
+from recipes.filters import IngredientNameFilter
 from recipes.models import Ingredient, Recipe, Tag
 from recipes.mixins import ListRetrieveModelViewSet
 from recipes.serializers import (
@@ -22,17 +23,25 @@ User = get_user_model()
 
 
 class IngredientViewSet(ListRetrieveModelViewSet):
+    """Вьюсет для отображения списка ингредиентов и выбранного ингредиента"""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
-    pagination_class = None
+    permission_classes = (AllowAny,)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = IngredientNameFilter
+
+
+class TagViewSet(ListRetrieveModelViewSet):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+    permission_classes = (AllowAny,)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
+    """Вьюсет для отображения, запси, изменения и удаления рецептов."""
     queryset = Recipe.objects.all()
     http_method_names = ('get', 'post', 'patch', 'delete')
-    pagination_class = PageNumberPagination
+    pagination_class = NumPageLimitPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('author', 'tags',)
 
@@ -65,8 +74,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 return response.Response(status=status.HTTP_204_NO_CONTENT)
             raise ValidationError('Такого рецепта нет в избранном')
 
-
-class TagViewSet(ListRetrieveModelViewSet):
-    queryset = Tag.objects.all()
-    serializer_class = TagSerializer
-    pagination_class = None
+    @action(methods=('post', 'delete',), detail=True,
+            permission_classes=(IsAuthenticated,))
+    def shopping_cart(self, request, pk=None):
+        pass

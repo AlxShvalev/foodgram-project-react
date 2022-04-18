@@ -17,7 +17,7 @@ class Recipe(models.Model):
     )
     image = models.ImageField(
         'Изображение',
-        upload_to='media/recipes/',
+        upload_to='recipes/',
         blank=True,
         null=True,
         help_text='Добавить изображение',
@@ -37,7 +37,10 @@ class Recipe(models.Model):
     subscribers = models.ManyToManyField(
         User,
         related_name='favorites',
-        blank=True,
+    )
+    buyers = models.ManyToManyField(
+        User,
+        related_name='shopping_cart',
     )
     cooking_time = models.IntegerField(
         'Время приготовления',
