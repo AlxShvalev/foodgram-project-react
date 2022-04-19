@@ -74,7 +74,7 @@ class AmountWriteSerializer(serializers.Serializer):
     def validate_id(self, data):
         if Ingredient.objects.filter(pk=data).exists():
             return data
-        raise serializers.ValidationError(f'Ингредиент c id={data} не найден')
+        raise serializers.ValidationError(f'Ингредиент {data} не найден')
 
 
 class RecipeReadSerializer(serializers.ModelSerializer):
@@ -83,17 +83,24 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     tags = TagSerializer(read_only=True, many=True)
     is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
         fields = ('id', 'tags', 'author', 'ingredients', 'is_favorited',
-                  'name', 'image', 'text', 'cooking_time')
+                  'is_in_shopping_cart', 'name', 'image', 'text',
+                  'cooking_time')
         read_only_fields = ('author',)
 
     def get_is_favorited(self, obj):
         user = self.context['request'].user
         return (user.is_authenticated and
                 obj in user.favorites.all())
+
+    def get_is_in_shopping_cart(self, obj):
+        user = self.context['request'].user
+        return (user.is_authenticated and
+                obj in user.shopping_cart.all())
 
 
 class RecipeWriteSerializer(serializers.Serializer):
@@ -117,6 +124,9 @@ class RecipeWriteSerializer(serializers.Serializer):
         recipe.save()
         for obj in ingredients_field:
             ingredient = Ingredient.objects.get(pk=obj['id'])
+            if ingredient in ingredients_list:
+                raise serializers.ValidationError(f'Ингредиент {ingredient}'
+                                                  ' уже добавлен в рецепт')
             ingredients_data.append(
                 Amount(
                     recipe=recipe,
@@ -142,6 +152,9 @@ class RecipeWriteSerializer(serializers.Serializer):
         ingredients_data = []
         for obj in ingredients_field:
             ingredient = Ingredient.objects.get(pk=obj['id'])
+            if ingredient in ingredients_list:
+                raise serializers.ValidationError(f'Ингредиент {ingredient}'
+                                                  ' уже добавлен в рецепт')
             ingredients_data.append(
                 Amount(
                     recipe=recipe,

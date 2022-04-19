@@ -26,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-hahm(z4&p0i$e2*=ayt0-i(^s_u(41vw&*8q5gf)_v78u3ey%2'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', default=False)
+DEBUG = os.getenv('DEBUG', default=True)
 
 # AUTH_USER_MODEL = 'users.User'
 

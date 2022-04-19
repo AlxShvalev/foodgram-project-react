@@ -37,10 +37,12 @@ class Recipe(models.Model):
     subscribers = models.ManyToManyField(
         User,
         related_name='favorites',
+        blank=True,
     )
     buyers = models.ManyToManyField(
         User,
         related_name='shopping_cart',
+        blank=True,
     )
     cooking_time = models.IntegerField(
         'Время приготовления',
