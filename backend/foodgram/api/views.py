@@ -67,23 +67,28 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return RecipeReadSerializer
         return RecipeWriteSerializer
 
-    @action(methods=('post', 'delete'), detail=True,
+    @action(methods=('post',), detail=True,
             permission_classes=(IsAuthenticated,))
-    def favorite(self, request, pk=None):
-        recipe = get_object_or_404(Recipe, pk=pk)
+    def favorite(self, request, **kwargs):
+        recipe = get_object_or_404(Recipe, pk=self.kwargs['pk'])
         user = request.user
-        if request.method == 'POST':
-            if recipe in user.favorites.all():
-                raise ValidationError('Рецепт уже в избранном')
-            user.favorites.add(recipe)
-            serializer = FavoriteSerializer(recipe)
-            return response.Response(data=serializer.data,
-                                     status=status.HTTP_201_CREATED)
-        else:
-            if recipe in user.favorites.all():
-                user.favorites.remove(recipe)
-                return response.Response(status=status.HTTP_204_NO_CONTENT)
-            raise ValidationError('Такого рецепта нет в избранном')
+        if recipe in user.favorites.all():
+            return response.Response({'error': 'Рецепт уже в избранном'},
+                                     status=status.HTTP_400_BAD_REQUEST)
+        user.favorites.add(recipe)
+        serializer = FavoriteSerializer(recipe)
+        return response.Response(data=serializer.data,
+                                 status=status.HTTP_201_CREATED)
+    @favorite.mapping.delete
+    def delete_favorite(self, request, **kwargs):
+        """Удаляем рецепт из избранного"""
+        recipe = get_object_or_404(Recipe, id=self.kwargs['pk'])
+        user = request.user
+        if recipe in user.favorites.all():
+            user.favorites.remove(recipe)
+            return response.Response(status=status.HTTP_204_NO_CONTENT)
+        return response.Response({'error':'Такого рецепта нет в избранном'},
+                                 status=status.HTTP_400_BAD_REQUEST)
 
     @action(methods=('post', 'delete',), detail=True,
             permission_classes=(IsAuthenticated,))
