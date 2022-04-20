@@ -12,12 +12,12 @@ from recipes.filters import IngredientNameFilter
 from recipes.models import Ingredient, Recipe, Tag
 from recipes.mixins import ListRetrieveModelViewSet
 from recipes.serializers import (
-    FavoriteSerializer,
     IngredientSerializer,
     RecipeReadSerializer,
     RecipeWriteSerializer,
     TagSerializer,
 )
+from users.serializers import FavoriteSerializer
 
 User = get_user_model()
 
@@ -40,7 +40,6 @@ class TagViewSet(ListRetrieveModelViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет для отображения, запси, изменения и удаления рецептов."""
-    # queryset = Recipe.objects.all()
     http_method_names = ('get', 'post', 'patch', 'delete')
     pagination_class = NumPageLimitPagination
     filter_backends = (DjangoFilterBackend,)
@@ -62,7 +61,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if self.request.method in ('GET', 'PATCH', 'DELETE'):
             return (IsAuthorOrReadOnly(),)
         return (IsAuthenticated(),)
-
 
     def get_serializer_class(self):
         if self.request.method in ('GET',):

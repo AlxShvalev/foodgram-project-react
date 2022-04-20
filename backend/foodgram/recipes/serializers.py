@@ -180,10 +180,3 @@ class RecipeWriteSerializer(serializers.Serializer):
 
     def to_representation(self, instance):
         return RecipeReadSerializer(instance, context=self.context).data
-
-
-class FavoriteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Recipe
-        fields = ('id', 'name', 'image', 'cooking_time')
-        read_only_fields = ('id', 'name', 'image', 'cooking_time')

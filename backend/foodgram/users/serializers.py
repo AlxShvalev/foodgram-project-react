@@ -1,16 +1,36 @@
 from django.contrib.auth import get_user_model
-from rest_framework.serializers import ModelSerializer, ValidationError
+from rest_framework import serializers
+
+from .models import Follow
+from recipes.models import Recipe
+
 
 User = get_user_model()
 
 
-class UserSerializer(ModelSerializer):
+class FavoriteSerializer(serializers.ModelSerializer):
+    """Класс для сериализации рецепта"""
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
+        read_only_fields = ('id', 'name', 'image', 'cooking_time')
+
+
+class UserSerializer(serializers.ModelSerializer):
     """Класс для сериализации модели пользователя"""
+    is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ('email', 'id', 'username', 'first_name',
-                  'last_name', 'password')
+        fields = (
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed',
+            'password'
+        )
         extra_kwargs = {
             'email': {
                 'required': True,
@@ -37,5 +57,55 @@ class UserSerializer(ModelSerializer):
 
     def validate_email(self, email):
         if User.objects.filter(email=email).exists():
-            raise ValidationError(f'Пользователь с таким email уже существует')
+            raise serializers.ValidationError(
+                'Пользователь с таким email уже существует'
+            )
         return email
+
+    def get_is_subscribed(self, obj):
+        user = self.context['request'].user
+        return user.is_authenticated and Follow.objects.filter(user=user, author=obj).exists()
+
+
+class FollowSerializer(serializers.ModelSerializer):
+    is_subscribed = serializers.SerializerMethodField()
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed',
+            'recipes',
+            'recipes_count'
+        )
+        read_only_fields = (
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed',
+            'recipes',
+            'recipes_count'
+        )
+
+        def get_is_subscribed(self, obj):
+            user = self.context['request'].user
+            return user.is_authenticated and obj in user.follower.all()
+
+        def get_recipes(self, obj):
+            qs = obj.recipes.all()
+            recipes_limit = self.context['request'].GET.get('recipe_limit')
+
+            if recipes_limit:
+                qs = qs[:recipes_limit]
+            return FavoriteSerializer(instance=qs, many=True)
+
+        def get_recipes_count(self,obj):
+            return obj.recipes.all().count()
