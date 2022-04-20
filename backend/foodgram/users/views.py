@@ -19,7 +19,7 @@ class UserAPIViewSet(UserViewSet):
     pagination_class = NumPageLimitPagination
 
     @action(methods=('get',), detail=False)
-    def subscribtions(self, request, **kwargs):
+    def subscriptions(self, request, **kwargs):
         """Список подписко"""
         qs = Follow.objects.filter(user=request.user)
         page = self.paginate_queryset(qs)
