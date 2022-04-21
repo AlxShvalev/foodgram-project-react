@@ -1,4 +1,4 @@
-from rest_framework import serializers
+from rest_framework import serializers, validators
 
 from recipes.models import Amount, Ingredient, Recipe, Tag
 from users.serializers import UserSerializer
@@ -125,8 +125,9 @@ class RecipeWriteSerializer(serializers.Serializer):
         for obj in ingredients_field:
             ingredient = Ingredient.objects.get(pk=obj['id'])
             if ingredient in ingredients_list:
-                raise serializers.ValidationError(f'Ингредиент {ingredient}'
-                                                  ' уже добавлен в рецепт')
+                raise serializers.ValidationError(
+                    {'error': 'Ингредиент уже добавлен в рецепт'}
+                )
             ingredients_data.append(
                 Amount(
                     recipe=recipe,
@@ -153,8 +154,9 @@ class RecipeWriteSerializer(serializers.Serializer):
         for obj in ingredients_field:
             ingredient = Ingredient.objects.get(pk=obj['id'])
             if ingredient in ingredients_list:
-                raise serializers.ValidationError(f'Ингредиент {ingredient}'
-                                                  ' уже добавлен в рецепт')
+                raise serializers.ValidationError(
+                    {'error': 'Ингредиент уже добавлен в рецепт'}
+                )
             ingredients_data.append(
                 Amount(
                     recipe=recipe,

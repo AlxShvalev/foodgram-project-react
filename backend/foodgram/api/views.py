@@ -4,11 +4,10 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import response, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.serializers import ValidationError
 
 from .paginators import NumPageLimitPagination
 from .permissions import IsAuthorOrReadOnly
-from recipes.filters import IngredientNameFilter
+from recipes.filters import IngredientNameFilter, TagsFilter
 from recipes.models import Ingredient, Recipe, Tag
 from recipes.mixins import ListRetrieveModelViewSet
 from recipes.serializers import (
@@ -23,7 +22,7 @@ User = get_user_model()
 
 
 class IngredientViewSet(ListRetrieveModelViewSet):
-    """Вьюсет для отображения списка ингредиентов и отдельного ингредиента"""
+    """Представление для отображения списка ингредиентов и ингредиента"""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = (AllowAny,)
@@ -32,18 +31,19 @@ class IngredientViewSet(ListRetrieveModelViewSet):
 
 
 class TagViewSet(ListRetrieveModelViewSet):
-    """Вьюсет для отображения списка тегов и отдельного тега"""
+    """Представление для отображения списка тегов и тега"""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = (AllowAny,)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    """Вьюсет для отображения, запси, изменения и удаления рецептов."""
+    """Представление для отображения, запси, изменения и удаления рецептов"""
     http_method_names = ('get', 'post', 'patch', 'delete')
     pagination_class = NumPageLimitPagination
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('author', 'tags',)
+    # filterset_class = TagsFilter
+    filterset_fields = ('author', 'tags__slug')
 
     def get_queryset(self):
         if self.request.method == 'GET':
@@ -70,6 +70,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(methods=('post',), detail=True,
             permission_classes=(IsAuthenticated,))
     def favorite(self, request, **kwargs):
+        """Добавить рецепт в избранное"""
         recipe = get_object_or_404(Recipe, pk=self.kwargs['pk'])
         user = request.user
         if recipe in user.favorites.all():
@@ -87,10 +88,30 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if recipe in user.favorites.all():
             user.favorites.remove(recipe)
             return response.Response(status=status.HTTP_204_NO_CONTENT)
-        return response.Response({'error':'Такого рецепта нет в избранном'},
+        return response.Response({'error': 'Такого рецепта нет в избранном'},
                                  status=status.HTTP_400_BAD_REQUEST)
 
-    @action(methods=('post', 'delete',), detail=True,
+    @action(methods=('post',), detail=True,
             permission_classes=(IsAuthenticated,))
-    def shopping_cart(self, request, pk=None):
-        pass
+    def shopping_cart(self, request, **kwargs):
+        """Добавить рецепт в корзину"""
+        recipe = get_object_or_404(Recipe, pk=self.kwargs['pk'])
+        user = request.user
+        if recipe in user.shopping_cart.all():
+            return response.Response({'error': 'Рецепт уже в корзине'},
+                                     status=status.HTTP_400_BAD_REQUEST)
+        user.shopping_cart.add(recipe)
+        serializer = FavoriteSerializer(recipe)
+        return response.Response(data=serializer.data,
+                                 status=status.HTTP_201_CREATED)
+
+    @shopping_cart.mapping.delete
+    def delete_shopping_cart(self, request, **kwargs):
+        """Удаляем рецепт из корзины"""
+        recipe = get_object_or_404(Recipe, id=self.kwargs['pk'])
+        user = request.user
+        if recipe in user.shopping_cart.all():
+            user.shopping_cart.remove(recipe)
+            return response.Response(status=status.HTTP_204_NO_CONTENT)
+        return response.Response({'error': 'Такого рецепта нет в корзине'},
+                                 status=status.HTTP_400_BAD_REQUEST)

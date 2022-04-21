@@ -6,7 +6,8 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 
 from .models import Follow
-from .serializers import FollowSerializer, SubscriptionSerializer, UserSerializer
+from .serializers import (FollowSerializer, SubscriptionSerializer,
+                          UserSerializer)
 from api.paginators import NumPageLimitPagination
 
 
@@ -14,13 +15,14 @@ User = get_user_model()
 
 
 class UserAPIViewSet(UserViewSet):
+    """Представление пользователя"""
     queryset = User.objects.all()
     serializer_class = UserSerializer
     pagination_class = NumPageLimitPagination
 
     @action(methods=('get',), detail=False)
     def subscriptions(self, request, **kwargs):
-        """Список подписко"""
+        """Список подписок"""
         qs = Follow.objects.filter(user=request.user)
         page = self.paginate_queryset(qs)
         if page is not None:
@@ -34,7 +36,7 @@ class UserAPIViewSet(UserViewSet):
     @action(methods=('post',), detail=True,
             permission_classes=(IsAuthenticated,))
     def subscribe(self, request, **kwargs):
-        """Подписываемся на пользователя."""
+        """Подписка на пользователя"""
         user = self.request.user
         author = get_object_or_404(User, id=self.kwargs['id'])
         data = {'user': user.id, 'author': author.id}
@@ -43,11 +45,12 @@ class UserAPIViewSet(UserViewSet):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return response.Response(serializer.data, status=status.HTTP_201_CREATED)
+        return response.Response(serializer.data,
+                                 status=status.HTTP_201_CREATED)
 
     @subscribe.mapping.delete
     def delete_subscribe(self, request, **kwargs):
-        """Удаляем подписку на автора."""
+        """Удаляем подписку на автора"""
         author = get_object_or_404(User, id=self.kwargs['id'])
         subscription = request.user.follower.filter(author=author)
         if subscription.exists():
