@@ -1,4 +1,4 @@
-from rest_framework import serializers
+from rest_framework import serializers, validators
 
 from recipes.models import Amount, Ingredient, Recipe, Tag
 from users.serializers import UserSerializer
@@ -68,13 +68,8 @@ class AmountReadSerializer(serializers.ModelSerializer):
 
 class AmountWriteSerializer(serializers.Serializer):
     """Сериализатор для записи модели Amount."""
-    id = serializers.IntegerField()
-    amount = serializers.IntegerField()
-
-    def validate_id(self, data):
-        if Ingredient.objects.filter(pk=data).exists():
-            return data
-        raise serializers.ValidationError(f'Ингредиент {data} не найден')
+    id = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all())
+    amount = serializers.IntegerField(min_value=1)
 
 
 class RecipeReadSerializer(serializers.ModelSerializer):
@@ -104,6 +99,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 
 
 class RecipeWriteSerializer(serializers.Serializer):
+    """Сериализатор для записи/изменения рецепта"""
     tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(),
                                               many=True)
     ingredients = AmountWriteSerializer(many=True)

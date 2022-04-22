@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Follow
 from .serializers import (FollowSerializer, SubscriptionSerializer,
                           UserSerializer)
-from api.paginators import NumPageLimitPagination
+from recipes.paginators import NumPageLimitPagination
 
 
 User = get_user_model()
@@ -36,7 +36,7 @@ class UserAPIViewSet(UserViewSet):
     @action(methods=('post',), detail=True,
             permission_classes=(IsAuthenticated,))
     def subscribe(self, request, **kwargs):
-        """Подписка на пользователя"""
+        """Подписка на автора"""
         user = self.request.user
         author = get_object_or_404(User, id=self.kwargs['id'])
         data = {'user': user.id, 'author': author.id}

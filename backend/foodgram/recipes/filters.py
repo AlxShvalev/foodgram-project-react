@@ -1,10 +1,7 @@
-from django_filters.rest_framework import BaseInFilter, CharFilter, FilterSet
+from django_filters.rest_framework import (CharFilter, FilterSet,
+                                           AllValuesMultipleFilter)
 
 from .models import Ingredient, Recipe
-
-
-class CharFilterInFilter(BaseInFilter, CharFilter):
-    pass
 
 
 class IngredientNameFilter(FilterSet):
@@ -16,9 +13,9 @@ class IngredientNameFilter(FilterSet):
 
 
 class RecipeFilter(FilterSet):
-    tags = CharFilterInFilter(
+    tags = AllValuesMultipleFilter(
         field_name='tags__slug',
-        lookup_expr='in'
+        lookup_expr='exact',
     )
 
     class Meta:
