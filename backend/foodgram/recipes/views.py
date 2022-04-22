@@ -43,7 +43,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     pagination_class = NumPageLimitPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
-    # filterset_fields = ('author', 'tags')
 
     def get_queryset(self):
         if self.request.method == 'GET':

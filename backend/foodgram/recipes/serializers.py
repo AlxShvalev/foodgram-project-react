@@ -1,4 +1,4 @@
-from rest_framework import serializers, validators
+from rest_framework import serializers
 
 from recipes.models import Amount, Ingredient, Recipe, Tag
 from users.serializers import UserSerializer
@@ -54,7 +54,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class AmountReadSerializer(serializers.ModelSerializer):
-    """Сериализатор для чтения модели Amount"""
+    """Сериализатор для вывода количества ингредиента в рецепте"""
     id = serializers.ReadOnlyField(source='ingredient.id')
     name = serializers.ReadOnlyField(source='ingredient.name')
     measurement_unit = serializers.ReadOnlyField(
@@ -67,7 +67,7 @@ class AmountReadSerializer(serializers.ModelSerializer):
 
 
 class AmountWriteSerializer(serializers.Serializer):
-    """Сериализатор для записи модели Amount."""
+    """Сериализатор для записи количества ингредиента в рецепт"""
     id = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all())
     amount = serializers.IntegerField(min_value=1)
 
@@ -112,19 +112,20 @@ class RecipeWriteSerializer(serializers.Serializer):
         user = self.context['request'].user
 
         tags = validated_data.pop('tags')
-
         ingredients_field = validated_data.pop('ingredients')
+
         ingredients_list = []
-        ingredients_data = []
+        amounts = []
+
         recipe = Recipe(author=user, **validated_data)
         recipe.save()
         for obj in ingredients_field:
-            ingredient = Ingredient.objects.get(pk=obj['id'])
-            if ingredient in ingredients_list:
+            ingredient = obj.get('id')
+            if obj in ingredients_list:
                 raise serializers.ValidationError(
                     {'error': 'Ингредиент уже добавлен в рецепт'}
                 )
-            ingredients_data.append(
+            amounts.append(
                 Amount(
                     recipe=recipe,
                     ingredient=ingredient,
@@ -133,9 +134,9 @@ class RecipeWriteSerializer(serializers.Serializer):
             )
             ingredients_list.append(ingredient)
 
-        Amount.objects.bulk_create(ingredients_data)
-        recipe.tags.add(*tags)
-        recipe.ingredients.add(*ingredients_list)
+        Amount.objects.bulk_create(amounts)
+        recipe.tags.set(tags)
+        recipe.ingredients.set(ingredients_list)
         return recipe
 
     def update(self, recipe, validated_data):
@@ -143,17 +144,18 @@ class RecipeWriteSerializer(serializers.Serializer):
         recipe.ingredients.clear()
         amount = Amount.objects.filter(recipe=recipe)
         amount.delete()
+
         tags = validated_data.pop('tags')
         ingredients_field = validated_data.pop('ingredients')
         ingredients_list = []
-        ingredients_data = []
+        amounts = []
         for obj in ingredients_field:
-            ingredient = Ingredient.objects.get(pk=obj['id'])
+            ingredient = obj.get('id')
             if ingredient in ingredients_list:
                 raise serializers.ValidationError(
                     {'error': 'Ингредиент уже добавлен в рецепт'}
                 )
-            ingredients_data.append(
+            amounts.append(
                 Amount(
                     recipe=recipe,
                     ingredient=ingredient,
@@ -162,7 +164,7 @@ class RecipeWriteSerializer(serializers.Serializer):
             )
             ingredients_list.append(ingredient)
 
-        Amount.objects.bulk_create(ingredients_data)
+        Amount.objects.bulk_create(amounts)
 
         recipe.name = validated_data.get('name', recipe.name)
         recipe.image = validated_data.get('image', recipe.image)
