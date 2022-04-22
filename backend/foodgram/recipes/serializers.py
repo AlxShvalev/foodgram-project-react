@@ -1,4 +1,4 @@
-from rest_framework import serializers, validators
+from rest_framework import serializers
 
 from recipes.models import Amount, Ingredient, Recipe, Tag
 from users.serializers import UserSerializer
@@ -137,7 +137,7 @@ class RecipeWriteSerializer(serializers.Serializer):
             )
             ingredients_list.append(ingredient)
 
-        amounts = Amount.objects.bulk_create(ingredients_data)
+        Amount.objects.bulk_create(ingredients_data)
         recipe.tags.add(*tags)
         recipe.ingredients.add(*ingredients_list)
         return recipe
@@ -166,7 +166,7 @@ class RecipeWriteSerializer(serializers.Serializer):
             )
             ingredients_list.append(ingredient)
 
-        amounts = Amount.objects.bulk_create(ingredients_data)
+        Amount.objects.bulk_create(ingredients_data)
 
         recipe.name = validated_data.get('name', recipe.name)
         recipe.image = validated_data.get('image', recipe.image)

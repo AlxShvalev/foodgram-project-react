@@ -7,7 +7,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from .paginators import NumPageLimitPagination
 from .permissions import IsAuthorOrReadOnly
-from recipes.filters import IngredientNameFilter, TagsFilter
+from recipes.filters import IngredientNameFilter, RecipeFilter
 from recipes.models import Ingredient, Recipe, Tag
 from recipes.mixins import ListRetrieveModelViewSet
 from recipes.serializers import (
@@ -42,8 +42,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     http_method_names = ('get', 'post', 'patch', 'delete')
     pagination_class = NumPageLimitPagination
     filter_backends = (DjangoFilterBackend,)
-    # filterset_class = TagsFilter
-    filterset_fields = ('author', 'tags__slug')
+    filterset_class = RecipeFilter
+    # filterset_fields = ('author', 'tags')
 
     def get_queryset(self):
         if self.request.method == 'GET':
@@ -80,6 +80,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         serializer = FavoriteSerializer(recipe)
         return response.Response(data=serializer.data,
                                  status=status.HTTP_201_CREATED)
+
     @favorite.mapping.delete
     def delete_favorite(self, request, **kwargs):
         """Удаляем рецепт из избранного"""
