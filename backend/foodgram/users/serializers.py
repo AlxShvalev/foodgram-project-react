@@ -9,11 +9,16 @@ User = get_user_model()
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
-    """Класс для сериализации рецепта"""
+    """Класс для сериализации рецепта в избранном"""
+    image = serializers.SerializerMethodField()
+
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
         read_only_fields = ('id', 'name', 'image', 'cooking_time')
+
+    def get_image(self, instance):
+        return instance.image.url if instance.image else ''
 
 
 class UserSerializer(serializers.ModelSerializer):
