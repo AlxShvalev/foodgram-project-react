@@ -115,3 +115,19 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return response.Response(status=status.HTTP_204_NO_CONTENT)
         return response.Response({'error': 'Такого рецепта нет в корзине'},
                                  status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=('get',), detail=False,
+            permission_classes=(IsAuthenticated,))
+    def download_shopping_cart(self, request, **kwargs):
+        shopping_cart = request.user.shopping_cart.all()
+        ingredients_list = {}
+        for recipe in shopping_cart:
+            for amount in recipe.amount.all():
+                ingredient = amount.ingredient.__str__()
+                if ingredient in ingredients_list:
+                    ingredients_list[ingredient] += int(amount.amount)
+                else:
+                    ingredients_list[ingredient] = int(amount.amount)
+        print(ingredients_list)
+
+        return response.Response(status=status.HTTP_200_OK)
