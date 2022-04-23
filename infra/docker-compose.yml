@@ -13,7 +13,7 @@ services:
     volumes:
       - /var/lib/postgresql/data/
     env_file:
-      - .env
+      - ../.env
     depends_on:
       - frontend
 
@@ -26,7 +26,15 @@ services:
     depends_on:
       - db
     env_file:
-      - .env
+      - ../.env
+    command:
+      - /bin/bash
+      - -c
+      - |
+        python3 manage.py makemigrations --no-input
+        python3 manage.py migrate --no-input
+        python3 manage.py collectstatic --no-input
+        gunicorn --bind 0.0.0.0:8000 foodgram.wsgi:application
 
   nginx:
     image: nginx:1.19.3

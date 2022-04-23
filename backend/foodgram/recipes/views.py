@@ -1,5 +1,7 @@
-from django.shortcuts import get_object_or_404
+import csv
 from django.contrib.auth import get_user_model
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import response, status, viewsets
 from rest_framework.decorators import action
@@ -119,15 +121,26 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(methods=('get',), detail=False,
             permission_classes=(IsAuthenticated,))
     def download_shopping_cart(self, request, **kwargs):
-        shopping_cart = request.user.shopping_cart.all()
-        ingredients_list = {}
+        user = request.user
+        shopping_cart = user.shopping_cart.all()
+        ingredients = {}
         for recipe in shopping_cart:
             for amount in recipe.amount.all():
                 ingredient = amount.ingredient.__str__()
-                if ingredient in ingredients_list:
-                    ingredients_list[ingredient] += int(amount.amount)
+                if ingredient in ingredients:
+                    ingredients[ingredient] += int(amount.amount)
                 else:
-                    ingredients_list[ingredient] = int(amount.amount)
-        print(ingredients_list)
+                    ingredients[ingredient] = int(amount.amount)
 
-        return response.Response(status=status.HTTP_200_OK)
+        response = HttpResponse(content_type='text/csv',)
+        response['Content-Disposition'] = ('attachment; '
+                                           'filename="ingredients.csv"')
+        writer = csv.DictWriter(response, fieldnames=('Ингредиент', 'Кол-во'))
+        writer.writeheader()
+        for ingredient, amount in ingredients.items():
+            writer.writerow({'Ингредиент': ingredient,
+                             'Кол-во': amount})
+
+        user.shopping_cart.clear()
+
+        return response

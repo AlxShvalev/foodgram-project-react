@@ -40,6 +40,8 @@ class RecipeAdmin(ImportExportModelAdmin):
     resource_class = RecipeResource
     list_display = ('id', 'name', 'author',)
     search_fields = ('name', 'author')
+    list_filter = ('tags',)
+    filter_horizontal = ('subscribers', 'buyers')
 
 
 class TagResource(resources.ModelResource):
