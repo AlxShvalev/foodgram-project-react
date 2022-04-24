@@ -60,7 +60,7 @@ sudo docker-compose up -d --build
 Выполнить команду:
 
 ```bash
-docker-compose exec web python manage.py createsuperuser 
+docker-compose exec backend python manage.py createsuperuser 
 ```
 
 
