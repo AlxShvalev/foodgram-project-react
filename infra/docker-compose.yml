@@ -13,7 +13,7 @@ services:
     volumes:
       - /var/lib/postgresql/data/
     env_file:
-      - ../.env
+      - .env
     depends_on:
       - frontend
 
@@ -26,7 +26,7 @@ services:
     depends_on:
       - db
     env_file:
-      - ../.env
+      - .env
     command:
       - /bin/bash
       - -c
