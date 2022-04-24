@@ -2,23 +2,28 @@ import csv
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from djoser.views import UserViewSet
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import response, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
+from .filters import IngredientNameFilter, RecipeFilter
+from .mixins import ListRetrieveModelViewSet
 from .paginators import NumPageLimitPagination
 from .permissions import IsAuthorOrReadOnly
-from recipes.filters import IngredientNameFilter, RecipeFilter
-from recipes.models import Ingredient, Recipe, Tag
-from recipes.mixins import ListRetrieveModelViewSet
-from recipes.serializers import (
+from .serializers import (
+    FollowSerializer,
+    FavoriteSerializer,
     IngredientSerializer,
     RecipeReadSerializer,
     RecipeWriteSerializer,
+    SubscriptionSerializer,
     TagSerializer,
+    UserSerializer,
 )
-from users.serializers import FavoriteSerializer
+from recipes.models import Ingredient, Recipe, Tag
+from users.models import Follow
 
 User = get_user_model()
 
@@ -144,3 +149,50 @@ class RecipeViewSet(viewsets.ModelViewSet):
         user.shopping_cart.clear()
 
         return response
+
+
+class UserAPIViewSet(UserViewSet):
+    """Представление пользователя"""
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    pagination_class = NumPageLimitPagination
+
+    @action(methods=('get',), detail=False)
+    def subscriptions(self, request, **kwargs):
+        """Список подписок"""
+        qs = Follow.objects.filter(user=request.user)
+        page = self.paginate_queryset(qs)
+        if page is not None:
+            serializer = SubscriptionSerializer(instance=page, many=True,
+                                                context={'request': request})
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(qs, many=True)
+        return response.Response(serializer.data,
+                                 status=status.HTTP_200_OK)
+
+    @action(methods=('post',), detail=True,
+            permission_classes=(IsAuthenticated,))
+    def subscribe(self, request, **kwargs):
+        """Подписка на автора"""
+        user = self.request.user
+        author = get_object_or_404(User, id=self.kwargs['id'])
+        data = {'user': user.id, 'author': author.id}
+        serializer = FollowSerializer(
+            data=data, context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return response.Response(serializer.data,
+                                 status=status.HTTP_201_CREATED)
+
+    @subscribe.mapping.delete
+    def delete_subscribe(self, request, **kwargs):
+        """Удаляем подписку на автора"""
+        author = get_object_or_404(User, id=self.kwargs['id'])
+        subscription = request.user.follower.filter(author=author)
+        if subscription.exists():
+            subscription.delete()
+            return response.Response(status=status.HTTP_204_NO_CONTENT)
+
+        return response.Response({'errors': 'Вы не подписаны на этого автора'},
+                                 status=status.HTTP_400_BAD_REQUEST)

@@ -1,11 +1,20 @@
 [
   {
-    "name": "Завтрак","color": "#AE35FE","slug": "breakfast"
+    "name": "Завтрак","color": "#008b8b","slug": "breakfast"
   },
   {
-    "name": "Обед","color": "#35FAAF","slug": "dinner"
+    "name": "Обед","color": "#7fffd4","slug": "dinner"
   },
   {
-    "name": "Ужин","color": "#AE5735","slug": "evening"
+    "name": "Ужин","color": "#8b0000","slug": "evening"
+  },
+  {
+    "name": "Выпечка", "color": "#ff8c00", "slug": "bakery"
+  },
+  {
+    "name": "Закуски", "color": "#2f4f4f", "slug": "snacks"
+  },
+  {
+    "name": "Напитки", "color": "#1e90ff", "slug": "drinks"
   }
 ]
