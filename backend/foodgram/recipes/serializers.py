@@ -110,7 +110,7 @@ class RecipeWriteSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=200)
     image = Base64Field(max_length=None, use_url=True)
     text = serializers.CharField()
-    cooking_time = serializers.IntegerField()
+    cooking_time = serializers.IntegerField(min_value=1)
 
     def create(self, validated_data):
         user = self.context['request'].user

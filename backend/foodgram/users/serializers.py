@@ -75,7 +75,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     last_name = serializers.ReadOnlyField(source='author.last_name')
     is_subscribed = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()
-    recipes_count = serializers.SerializerMethodField()
+    recipes_count = serializers.ReadOnlyField(source='author.recipes.count')
 
     class Meta:
         model = User
@@ -102,15 +102,11 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         return FavoriteSerializer(
             recipes, context=context, many=True).data
 
-    def get_recipes_count(self, obj):
-        return obj.author.recipes.count()
-
 
 class FollowSerializer(serializers.ModelSerializer):
     """Сериализатор для вывода всех подписок."""
-    queryset = User.objects.all()
-    user = serializers.PrimaryKeyRelatedField(queryset=queryset)
-    author = serializers.PrimaryKeyRelatedField(queryset=queryset)
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    author = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
 
     class Meta:
         model = Follow
