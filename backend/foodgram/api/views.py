@@ -59,7 +59,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             if user.is_authenticated:
                 if is_favorited == '1':
                     return user.favorites.all()
-                elif in_cart == '1':
+                if in_cart == '1':
                     return user.shopping_cart.all()
         return Recipe.objects.all()
 
