@@ -45,12 +45,10 @@ services:
       - ../frontend/build:/usr/share/nginx/html/
       - ../docs/:/usr/share/nginx/html/api/docs/
       - media_value:/var/html/media/
-      - static_value:/har/html/static/
       - django_static:/var/html/django_static/
     depends_on:
       - backend
 
 volumes:
   media_value:
-  static_value:
   django_static:
