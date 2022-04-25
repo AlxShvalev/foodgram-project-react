@@ -33,7 +33,7 @@ class AmountAdmin(ImportExportModelAdmin):
 class RecipeResource(resources.ModelResource):
     class Meta:
         model = Recipe
-        fields = ('id', 'author', 'name', 'text',)
+        fields = ('id', 'author', 'name', 'text', 'cooking_time', 'image')
 
 
 class RecipeAdmin(ImportExportModelAdmin):

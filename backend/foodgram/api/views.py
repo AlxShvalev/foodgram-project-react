@@ -137,7 +137,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 else:
                     ingredients[ingredient] = int(amount.amount)
 
-        response = HttpResponse(content_type='text/csv',)
+        response = HttpResponse(content_type='text/csv',
+                                status=status.HTTP_200_OK)
         response['Content-Disposition'] = ('attachment; '
                                            'filename="ingredients.csv"')
         writer = csv.DictWriter(response, fieldnames=('Ингредиент', 'Кол-во'))
