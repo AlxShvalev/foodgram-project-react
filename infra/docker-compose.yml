@@ -2,9 +2,7 @@ version: '3.3'
 services:
 
   frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
+    image: organizzzzm/foodgram_frontend:latest
     volumes:
       - ../frontend/:/app/result_build/
 
@@ -18,7 +16,8 @@ services:
       - frontend
 
   backend:
-    build: ../backend/foodgram/
+    image: organizzzzm/foodgram_backend:latest
+    build: .
     restart: always
     volumes:
       - django_static:/app/django_static/
