@@ -38,10 +38,10 @@ class RecipeResource(resources.ModelResource):
 
 class RecipeAdmin(ImportExportModelAdmin):
     resource_class = RecipeResource
-    list_display = ('id', 'name', 'author',)
+    list_display = ('id', 'name', 'author', 'cooking_time', 'image')
     search_fields = ('name', 'author')
     list_filter = ('tags',)
-    filter_horizontal = ('subscribers', 'buyers')
+    filter_horizontal = ('subscribers', 'buyers', 'tags',)
 
 
 class TagResource(resources.ModelResource):

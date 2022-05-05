@@ -74,8 +74,3 @@ GNU GPLv3
 
 ### Автор
 Алексей Швалёв
-
-### Сервер
-ip-address: 178.154.223.1
-login: root
-passsword: root_password
