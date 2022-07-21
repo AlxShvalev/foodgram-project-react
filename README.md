@@ -14,7 +14,7 @@
 
 ## Используемый стек
 
-Django 3.2|Django REST-framework|Docker-compose|PostgreSQL|Nginx
+`Django 3.2` `Django REST-framework` `Docker-compose` `PostgreSQL` `Nginx`
 
 ## Инфраструктура
 
